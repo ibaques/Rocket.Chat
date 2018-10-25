@@ -97,6 +97,7 @@ RocketChat.API.v1.addRoute('users.getPresence', { authRequired: true }, {
 			const user = RocketChat.models.Users.findOneById(this.userId);
 			return RocketChat.API.v1.success({
 				presence: user.status,
+				statusLivechat: user.statusLivechat,
 				connectionStatus: user.statusConnection,
 				lastLogin: user.lastLogin,
 			});
@@ -106,6 +107,7 @@ RocketChat.API.v1.addRoute('users.getPresence', { authRequired: true }, {
 
 		return RocketChat.API.v1.success({
 			presence: user.status,
+		        statusLivechat: user.statusLivechat
 		});
 	},
 });
@@ -281,6 +283,7 @@ RocketChat.API.v1.addRoute('users.update', { authRequired: true }, {
 				password: Match.Maybe(String),
 				username: Match.Maybe(String),
 				active: Match.Maybe(Boolean),
+				statusLivechat: Match.Maybe(String),
 				roles: Match.Maybe(Array),
 				joinDefaultChannels: Match.Maybe(Boolean),
 				requirePasswordChange: Match.Maybe(Boolean),
@@ -303,6 +306,12 @@ RocketChat.API.v1.addRoute('users.update', { authRequired: true }, {
 				Meteor.call('setUserActiveStatus', this.bodyParams.userId, this.bodyParams.data.active);
 			});
 		}
+		if (typeof this.bodyParams.data.statusLivechat !== 'undefined') {
+		      Meteor.runAsUser(this.userId, () => {
+			        Meteor.users.update( this.bodyParams.userId, { $set: { statusLivechat: this.bodyParams.data.statusLivechat } });
+		        });
+		}
+
 
 		return RocketChat.API.v1.success({ user: RocketChat.models.Users.findOneById(this.bodyParams.userId, { fields: RocketChat.API.v1.defaultFieldsToExclude }) });
 	},
